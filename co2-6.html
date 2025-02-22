@@ -151,7 +151,7 @@
             let transportCO2 = (document.getElementById('transport').value / carFactor) * (document.getElementById('fuelType').value === 'natural_gas' ? 2.69 : document.getElementById('fuelType').value === 'gasoline' ? 2.40 : 2.70) || 0;
             let electricityCO2 = (((document.getElementById('electricity').value / document.getElementById('electricityPersons').value) / 30) / 1.2) * 0.416 || 0;
             let waterCO2 = (((document.getElementById('water').value / document.getElementById('waterPersons').value) / 30) / 0.65) * 0.3 || 0;
-            let foodCO2 = selectedFoods.reduce((total, food) => total + foodFactors[food], 0) * (45 / 30) || 0;
+            let foodCO2 = selectedFoods.reduce((total, food) => total + foodFactors[food], 0) * (35 / 30) || 0;
             let totalCO2 = transportCO2 + electricityCO2 + waterCO2 + foodCO2;
             document.getElementById('result').innerText = `Your estimated monthly CO2 emissions: ${totalCO2.toFixed(2)} kg CO2`;
         }
