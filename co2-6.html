@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly CO2 Emissions Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .btn-group button {
+            flex: 1;
+            padding: 10px;
+            background: green;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-group button.active {
+            background: red;
+        }
+        .btn-group button:hover {
+            opacity: 0.8;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background: lightyellow;
+            text-align: center;
+            font-size: 18px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Monthly CO2 Emissions Calculator</h2>
+        <div class="form-group">
+            <label for="fuelType">Fuel Type:</label>
+            <select id="fuelType">
+                <option value="natural_gas">Natural Gas</option>
+                <option value="gasoline">Gasoline (Petrol)</option>
+                <option value="diesel">Diesel</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="transport">Distance Traveled (km):</label>
+            <input type="number" id="transport" placeholder="Enter distance in km">
+        </div>
+        <div class="form-group">
+            <label>Car Age:</label>
+            <div class="btn-group">
+                <button id="before2010" onclick="setCarFactor(10, 'before2010')">Car made before 2010</button>
+                <button id="after2010" onclick="setCarFactor(8, 'after2010')">Car made after 2010</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="electricity">Electricity Bill ($/month):</label>
+            <input type="number" id="electricity" placeholder="Enter amount in dollars">
+            <label for="electricityPersons">Number of Household Members:</label>
+            <input type="number" id="electricityPersons" placeholder="Enter number of people in home">
+        </div>
+        <div class="form-group">
+            <label for="water">Water Bill ($/month):</label>
+            <input type="number" id="water" placeholder="Enter amount in dollars">
+            <label for="waterPersons">Number of Household Members:</label>
+            <input type="number" id="waterPersons" placeholder="Enter number of people in home">
+        </div>
+        <div class="form-group">
+            <label>Select Food Type:</label>
+            <div class="btn-group" id="foodSelection">
+                <button onclick="toggleFood('beef', this)">Beef</button>
+                <button onclick="toggleFood('cheese', this)">Cheese</button>
+                <button onclick="toggleFood('turkey', this)">Turkey</button>
+                <button onclick="toggleFood('chicken', this)">Chicken</button>
+                <button onclick="toggleFood('tuna', this)">Tuna</button>
+                <button onclick="toggleFood('eggs', this)">Eggs</button>
+                <button onclick="toggleFood('potatoes', this)">Potatoes</button>
+                <button onclick="toggleFood('rice', this)">Rice</button>
+                <button onclick="toggleFood('vegetables', this)">Vegetables</button>
+            </div>
+        </div>
+        <button onclick="calculateCO2()">Calculate CO2 Emissions</button>
+        <div class="result" id="result">Your estimated monthly CO2 emissions will appear here.</div>
+    </div>
+
+    <script>
+        let selectedFoods = [];
+        let carFactor = null;
+        const foodFactors = {
+            'beef': 27, 'cheese': 13.5, 'turkey': 10.9, 'chicken': 6.9, 'tuna': 6.1, 'eggs': 4.8, 'potatoes': 2.9, 'rice': 4.5, 'vegetables': 2
+        };
+        
+        function setCarFactor(factor, selectedId) {
+            carFactor = factor;
+            document.getElementById('before2010').classList.remove('active');
+            document.getElementById('after2010').classList.remove('active');
+            document.getElementById(selectedId).classList.add('active');
+        }
+
+        function toggleFood(food, button) {
+            const index = selectedFoods.indexOf(food);
+            if (index > -1) {
+                selectedFoods.splice(index, 1);
+                button.classList.remove('active');
+            } else {
+                selectedFoods.push(food);
+                button.classList.add('active');
+            }
+        }
+
+        function calculateCO2() {
+            if (!carFactor) {
+                alert("Please select the car age before calculating CO2 emissions.");
+                return;
+            }
+            
+            let transportCO2 = (document.getElementById('transport').value / carFactor) * (document.getElementById('fuelType').value === 'natural_gas' ? 2.69 : document.getElementById('fuelType').value === 'gasoline' ? 2.40 : 2.70) || 0;
+            let electricityCO2 = (((document.getElementById('electricity').value / document.getElementById('electricityPersons').value) / 30) / 1.2) * 0.416 || 0;
+            let waterCO2 = (((document.getElementById('water').value / document.getElementById('waterPersons').value) / 30) / 0.65) * 0.3 || 0;
+            let foodCO2 = selectedFoods.reduce((total, food) => total + foodFactors[food], 0) * (45 / 30) || 0;
+            let totalCO2 = transportCO2 + electricityCO2 + waterCO2 + foodCO2;
+            document.getElementById('result').innerText = `Your estimated monthly CO2 emissions: ${totalCO2.toFixed(2)} kg CO2`;
+        }
+    </script>
+</body>
+</html>
