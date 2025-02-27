@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monthly CO2 Emissions Calculator</title>
+    <title>Daily CO2 Emissions Calculator - AMOC - MOHAMED ABD ELSALAM</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -52,9 +52,6 @@
         .btn-group button.active {
             background: red;
         }
-        .btn-group button:hover {
-            opacity: 0.8;
-        }
         .result {
             margin-top: 20px;
             padding: 10px;
@@ -63,11 +60,30 @@
             font-size: 18px;
             border-radius: 5px;
         }
+        .designer {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #555;
+        }
+        .item-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .item-container input {
+            width: 50px;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Monthly CO2 Emissions Calculator</h2>
+        <h2>Daily CO2 Emissions Calculator</h2>
+
+        <!-- TRANSPORTATION -->
         <div class="form-group">
             <label for="fuelType">Fuel Type:</label>
             <select id="fuelType">
@@ -83,47 +99,74 @@
         <div class="form-group">
             <label>Car Age:</label>
             <div class="btn-group">
-                <button id="before2010" onclick="setCarFactor(10, 'before2010')">Car made before 2010</button>
-                <button id="after2010" onclick="setCarFactor(8, 'after2010')">Car made after 2010</button>
+                <button id="before2010" onclick="setCarFactor(8, 'before2010')">Car made before 2010</button>
+                <button id="after2010" onclick="setCarFactor(10, 'after2010')">Car made after 2010</button>
             </div>
         </div>
+
+        <!-- ELECTRICITY -->
         <div class="form-group">
             <label for="electricity">Electricity Bill ($/month):</label>
             <input type="number" id="electricity" placeholder="Enter amount in dollars">
             <label for="electricityPersons">Number of Household Members:</label>
             <input type="number" id="electricityPersons" placeholder="Enter number of people in home">
         </div>
+
+        <!-- WATER -->
         <div class="form-group">
             <label for="water">Water Bill ($/month):</label>
             <input type="number" id="water" placeholder="Enter amount in dollars">
             <label for="waterPersons">Number of Household Members:</label>
             <input type="number" id="waterPersons" placeholder="Enter number of people in home">
         </div>
+
+        <!-- FOOD -->
         <div class="form-group">
-            <label>Select Food Type:</label>
-            <div class="btn-group" id="foodSelection">
-                <button onclick="toggleFood('beef', this)">Beef</button>
-                <button onclick="toggleFood('cheese', this)">Cheese</button>
-                <button onclick="toggleFood('turkey', this)">Turkey</button>
-                <button onclick="toggleFood('chicken', this)">Chicken</button>
-                <button onclick="toggleFood('tuna', this)">Tuna</button>
-                <button onclick="toggleFood('eggs', this)">Eggs</button>
-                <button onclick="toggleFood('potatoes', this)">Potatoes</button>
-                <button onclick="toggleFood('rice', this)">Rice</button>
-                <button onclick="toggleFood('vegetables', this)">Vegetables</button>
-            </div>
+            <label>Select Food Type & Enter Weight (kg):</label>
+            <div id="foodSelection"></div>
         </div>
+
+        <!-- WASTE -->
+        <div class="form-group">
+            <label>Select Waste Type & Enter Weight (kg):</label>
+            <div id="wasteSelection"></div>
+        </div>
+
         <button onclick="calculateCO2()">Calculate CO2 Emissions</button>
-        <div class="result" id="result">Your estimated monthly CO2 emissions will appear here.</div>
+        <div class="result" id="result"></div>
+        <div class="designer">Designed by: Eng. Mohamed Abd El Salam Seuofy 😊</div>
     </div>
 
     <script>
-        let selectedFoods = [];
+        let selectedFoods = {};
+        let selectedWaste = {};
         let carFactor = null;
+
         const foodFactors = {
-            'beef': 27, 'cheese': 13.5, 'turkey': 10.9, 'chicken': 6.9, 'tuna': 6.1, 'eggs': 4.8, 'potatoes': 2.9, 'rice': 4.5, 'vegetables': 2
+            'beef': 27, 'cheese': 13.5, 'turkey': 10.9, 'chicken': 6.9,
+            'tuna': 6.1, 'eggs': 4.8, 'potatoes': 2.9, 'rice': 4.5, 'vegetables': 2
         };
-        
+
+        const wasteFactors = {
+            'organic': 0.15, 'paper': 1.7, 'plastic': 6, 'glass': 0.21,
+            'metal': 0.39, 'textiles': 3.5, 'food_waste': 0.25,
+            'yard_waste': 0.13, 'electronics': 9
+        };
+
+        function calculateCO2() {
+            let transportCO2 = (document.getElementById('transport').value / carFactor) * 2.5 || 0;
+            let electricityCO2 = (((document.getElementById('electricity').value / document.getElementById('electricityPersons').value) / 30) / 1.2) * 0.416 || 0;
+            let waterCO2 = (((document.getElementById('water').value / document.getElementById('waterPersons').value) / 30) / 0.65) * 0.3 || 0;
+            let foodCO2 = Object.entries(selectedFoods).reduce((total, [item, weight]) => total + (foodFactors[item] * weight), 0);
+            let wasteCO2 = Object.entries(selectedWaste).reduce((total, [item, weight]) => total + (wasteFactors[item] * weight), 0);
+
+            let totalCO2 = transportCO2 + electricityCO2 + waterCO2 + foodCO2 + wasteCO2;
+            let monthlyCO2 = totalCO2 * 30;
+
+            document.getElementById('result').innerHTML = `Your estimated Daily CO2 emissions: ${totalCO2.toFixed(2)} kg CO2<br>
+                                                           Your estimated Monthly CO2 emissions: ${monthlyCO2.toFixed(2)} kg CO2`;
+        }
+
         function setCarFactor(factor, selectedId) {
             carFactor = factor;
             document.getElementById('before2010').classList.remove('active');
@@ -131,30 +174,24 @@
             document.getElementById(selectedId).classList.add('active');
         }
 
-        function toggleFood(food, button) {
-            const index = selectedFoods.indexOf(food);
-            if (index > -1) {
-                selectedFoods.splice(index, 1);
-                button.classList.remove('active');
-            } else {
-                selectedFoods.push(food);
-                button.classList.add('active');
-            }
+        function renderSelection(containerId, items, selectionObject) {
+            let container = document.getElementById(containerId);
+            container.innerHTML = "";
+            Object.keys(items).forEach(item => {
+                let input = document.createElement('input');
+                input.type = "number";
+                input.min = "0";
+                input.step = "0.01";
+                input.placeholder = "kg";
+                input.oninput = () => selectionObject[item] = parseFloat(input.value) || 0;
+                container.appendChild(document.createTextNode(item.toUpperCase() + ": "));
+                container.appendChild(input);
+                container.appendChild(document.createElement("br"));
+            });
         }
 
-        function calculateCO2() {
-            if (!carFactor) {
-                alert("Please select the car age before calculating CO2 emissions.");
-                return;
-            }
-            
-            let transportCO2 = (document.getElementById('transport').value / carFactor) * (document.getElementById('fuelType').value === 'natural_gas' ? 2.69 : document.getElementById('fuelType').value === 'gasoline' ? 2.40 : 2.70) || 0;
-            let electricityCO2 = (((document.getElementById('electricity').value / document.getElementById('electricityPersons').value) / 30) / 1.2) * 0.416 || 0;
-            let waterCO2 = (((document.getElementById('water').value / document.getElementById('waterPersons').value) / 30) / 0.65) * 0.3 || 0;
-            let foodCO2 = selectedFoods.reduce((total, food) => total + foodFactors[food], 0) * (30 / 30) || 0;
-            let totalCO2 = transportCO2 + electricityCO2 + waterCO2 + foodCO2;
-            document.getElementById('result').innerText = `Your estimated monthly CO2 emissions: ${totalCO2.toFixed(2)} kg CO2`;
-        }
+        renderSelection("foodSelection", foodFactors, selectedFoods);
+        renderSelection("wasteSelection", wasteFactors, selectedWaste);
     </script>
 </body>
 </html>
